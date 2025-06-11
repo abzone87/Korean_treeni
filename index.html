@@ -16,104 +16,90 @@
   </div>
   <hr>
   <div id="practiceArea" style="text-align: center; margin-top: 1em;"></div>
+  
 
-  <script>
-    const words = [
-      { "korean": "사랑", "english": "Love" },
-      { "korean": "학교", "english": "School" },
-      { "korean": "친구", "english": "Friend" },
-      { "korean": "음식", "english": "Food" },
-      { "korean": "행복", "english": "Happiness" }
-    ];
+<!-- Load the vocabulary list from GitHub -->
+<script src="https://raw.githubusercontent.com/your-username/your-repo/main/words.js"></script>
 
-    let current = {};
-    let mode = '';
+<!-- Your main app logic -->
+<script>
+  let current = {};
+  let mode = '';
 
-    function setMode(m) {
-      mode = m;
-      nextQuestion();
-    }
+  function setMode(m) {
+    mode = m;
+    nextQuestion();
+  }
 
-    function nextQuestion() {
-      current = words[Math.floor(Math.random() * words.length)];
-      const area = document.getElementById('practiceArea');
-      area.innerHTML = '';
+  function nextQuestion() {
+    current = words[Math.floor(Math.random() * words.length)];
+    const area = document.getElementById('practiceArea');
+    area.innerHTML = '';
 
-      if (mode === 'mc-ko-en' || mode === 'mc-en-ko') {
-        const question = document.createElement('div');
-        question.style.fontSize = '1.5em';
-        question.style.marginBottom = '1em';
-        question.textContent = mode === 'mc-ko-en' ? current.korean : current.english;
-        area.appendChild(question);
+    if (mode === 'mc-ko-en' || mode === 'mc-en-ko') {
+      const question = document.createElement('div');
+      question.textContent = mode === 'mc-ko-en' ? current.korean : current.english;
+      area.appendChild(question);
 
-        const options = shuffle([current, ...getRandomOptions(3)]);
-        options.forEach(opt => {
-          const btn = document.createElement('button');
-          btn.textContent = mode === 'mc-ko-en' ? opt.english : opt.korean;
-          btn.style.display = 'block';
-          btn.style.margin = '0.5em auto';
-          btn.onclick = () => alert((opt === current) ? 'Correct!' : 'Wrong!');
-          area.appendChild(btn);
-        });
+      const options = shuffle([current, ...getRandomOptions(3)]);
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = mode === 'mc-ko-en' ? opt.english : opt.korean;
+        btn.onclick = () => alert((opt === current) ? 'Correct!' : 'Wrong!');
+        area.appendChild(btn);
+      });
 
-      } else if (mode === 'write-ko-en' || mode === 'write-en-ko') {
-        const question = document.createElement('div');
-        question.style.fontSize = '1.5em';
-        question.style.marginBottom = '1em';
-        question.textContent = mode === 'write-ko-en' ? current.korean : current.english;
-        area.appendChild(question);
+    } else if (mode === 'write-ko-en' || mode === 'write-en-ko') {
+      const question = document.createElement('div');
+      question.textContent = mode === 'write-ko-en' ? current.korean : current.english;
+      area.appendChild(question);
 
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.style.width = '80%';
-        input.style.marginBottom = '0.5em';
-        area.appendChild(input);
+      const input = document.createElement('input');
+      input.type = 'text';
+      area.appendChild(input);
 
-        const btn = document.createElement('button');
-        btn.textContent = 'Check';
-        btn.onclick = () => {
-          const answer = input.value.trim();
-          const correct = mode === 'write-ko-en' ? current.english : current.korean;
-          alert(answer === correct ? 'Correct!' : 'Wrong! Correct answer: ' + correct);
-        };
-        area.appendChild(btn);
+      const btn = document.createElement('button');
+      btn.textContent = 'Check';
+      btn.onclick = () => {
+        const answer = input.value.trim();
+        const correct = mode === 'write-ko-en' ? current.english : current.korean;
+        alert(answer === correct ? 'Correct!' : 'Wrong! Correct answer: ' + correct);
+      };
+      area.appendChild(btn);
 
-      } else if (mode === 'listen-ko-en') {
-        const utterance = new SpeechSynthesisUtterance(current.korean);
-        utterance.lang = 'ko-KR';
-        speechSynthesis.speak(utterance);
+    } else if (mode === 'listen-ko-en') {
+      const utterance = new SpeechSynthesisUtterance(current.korean);
+      utterance.lang = 'ko-KR';
+      speechSynthesis.speak(utterance);
 
-        const question = document.createElement('div');
-        question.style.fontSize = '1.2em';
-        question.style.marginBottom = '1em';
-        question.textContent = 'What is the meaning of the spoken Korean word?';
-        area.appendChild(question);
+      const question = document.createElement('div');
+      question.textContent = 'What is the meaning of the spoken Korean word?';
+      area.appendChild(question);
 
-        const options = shuffle([current, ...getRandomOptions(3)]);
-        options.forEach(opt => {
-          const btn = document.createElement('button');
-          btn.textContent = opt.english;
-          btn.style.display = 'block';
-          btn.style.margin = '0.5em auto';
-          btn.onclick = () => alert((opt === current) ? 'Correct!' : 'Wrong!');
-          area.appendChild(btn);
-        });
-      }
-    }
+      const options = shuffle([current, ...getRandomOptions(3)]);
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt.english;
+        btn.onclick = () => alert((opt === current) ? 'Correct!' : 'Wrong!');
+        area.appendChild(btn);
+      });
+    }
+  }
 
-    function getRandomOptions(n) {
-      const shuffled = words.filter(w => w !== current).sort(() => 0.5 - Math.random());
-      return shuffled.slice(0, n);
-    }
+  function getRandomOptions(n) {
+    const shuffled = words.filter(w => w !== current).sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, n);
+  }
 
-    function shuffle(array) {
-      return array.sort(() => Math.random() - 0.5);
-    }
+  function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+  }
 
-    window.onload = () => {
-      setMode('mc-ko-en');
-    };
-  </script>
+  window.onload = () => {
+    setMode('mc-ko-en');
+  };
+</script>
+
 </body>
 </html>
 
