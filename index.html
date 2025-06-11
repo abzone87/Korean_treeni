@@ -1,69 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Korean Practice</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
-        #quiz-container { display: none; margin-top: 20px; }
-        .option { margin: 5px; padding: 10px; background: #eee; cursor: pointer; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Korean Vocabulary Practice</title>
 </head>
 <body>
+  <h1>Korean Vocabulary Practice</h1>
+  <div>
+    <button onclick="setMode('mc-ko-en')">Korean → English (MC)</button>
+    <button onclick="setMode('mc-en-ko')">English → Korean (MC)</button>
+    <button onclick="setMode('write-ko-en')">Korean → English (Write)</button>
+    <button onclick="setMode('write-en-ko')">English → Korean (Write)</button>
+    <button onclick="setMode('listen-ko-en')">🎧 Listen → English</button>
+  </div>
+  <hr>
+  <div id="practiceArea"></div>
 
-    <h1>Practice Korean Words & Conjugation</h1>
+  <script>
+    const words = [
+      { "korean": "사랑", "english": "Love" },
+      { "korean": "학교", "english": "School" },
+      { "korean": "친구", "english": "Friend" },
+      { "korean": "음식", "english": "Food" },
+      { "korean": "행복", "english": "Happiness" }
+    ];
 
-    <button onclick="fetchKoreanWord()">Get a New Word</button>
-    <p id="word"></p>
-    <p id="definition"></p>
+    let current = {};
+    let mode = '';
 
-    <button onclick="startQuiz()">Start Quiz</button>
+    function setMode(m) {
+      mode = m;
+      nextQuestion();
+    }
 
-    <div id="quiz-container">
-        <p id="question"></p>
-        <div id="options"></div>
-        <input type="text" id="answer" placeholder="Type your answer">
-        <button onclick="checkAnswer()">Submit</button>
-    </div>
+    function nextQuestion() {
+      current = words[Math.floor(Math.random() * words.length)];
+      const area = document.getElementById('practiceArea');
+      area.innerHTML = '';
 
-    <script>
-        async function fetchKoreanWord() {
-            let apiKey = E9C61BE444E5FF42C3D71522545CEF95;  // Replace with your real API key
-            let url = https://krdict.korean.go.kr/openApi/search?key=${apiKey}&q=random&translated=y&trans_lang=eng;
+      if (mode === 'mc-ko-en' || mode === 'mc-en-ko') {
+        const question = document.createElement('div');
+        question.textContent = mode === 'mc-ko-en' ? current.korean : current.english;
+        area.appendChild(question);
 
-            let response = await fetch(url);
-            let text = await response.text(); // API returns XML, so we need to parse it
-            let parser = new DOMParser();
-            let xmlDoc = parser.parseFromString(text, "text/xml");
+        const options = shuffle([current, ...getRandomOptions(3)]);
+        options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.textContent = mode === 'mc-ko-en' ? opt.english : opt.korean;
+          btn.onclick = () => alert((opt === current) ? 'Correct!' : 'Wrong!');
+          area.appendChild(btn);
+        });
 
-            let word = xmlDoc.getElementsByTagName("word")[0]?.textContent || "No word found";
-            let definition = xmlDoc.getElementsByTagName("definition")[0]?.textContent || "No definition found";
+      } else if (mode === 'write-ko-en' || mode === 'write-en-ko') {
+        const question = document.createElement('div');
+        question.textContent = mode === 'write-ko-en' ? current.korean : current.english;
+        area.appendChild(question);
 
-            document.getElementById("word").innerText = Word: ${word};
-            document.getElementById("definition").innerText = Meaning: ${definition};
-        }
+        const input = document.createElement('input');
+        input.type = 'text';
+        area.appendChild(input);
 
-        function startQuiz() {
-            document.getElementById("quiz-container").style.display = "block";
-            let question = "What does '안녕하세요' mean?";
-            let options = ["Hello", "Goodbye", "Thank you", "Sorry"];
+        const btn = document.createElement('button');
+        btn.textContent = 'Check';
+        btn.onclick = () => {
+          const answer = input.value.trim();
+          const correct = mode === 'write-ko-en' ? current.english : current.korean;
+          alert(answer === correct ? 'Correct!' : 'Wrong! Correct answer: ' + correct);
+        };
+        area.appendChild(btn);
 
-            document.getElementById("question").innerText = question;
-            document.getElementById("options").innerHTML = options.map(opt => 
-                <div class="option" onclick="checkMCAnswer('${opt}')">${opt}</div>
-            ).join('');
-        }
+      } else if (mode === 'listen-ko-en') {
+        const utterance = new SpeechSynthesisUtterance(current.korean);
+        utterance.lang = 'ko-KR';
+        speechSynthesis.speak(utterance);
 
-        function checkMCAnswer(selected) {
-            alert(selected === "Hello" ? "Correct!" : "Try again!");
-        }
+        const question = document.createElement('div');
+        question.textContent = 'What is the meaning of the spoken Korean word?';
+        area.appendChild(question);
 
-        function checkAnswer() {
-            let userInput = document.getElementById("answer").value.trim().toLowerCase();
-            alert(userInput === "hello" ? "Correct!" : "Try again!");
-        }
-    </script>
+        const options = shuffle([current, ...getRandomOptions(3)]);
+        options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.textContent = opt.english;
+          btn.onclick = () => alert((opt === current) ? 'Correct!' : 'Wrong!');
+          area.appendChild(btn);
+        });
+      }
+    }
 
+    function getRandomOptions(n) {
+      const shuffled = words.filter(w => w !== current).sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, n);
+    }
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    window.onload = () => {
+      setMode('mc-ko-en');
+    };
+  </script>
 </body>
 </html>
