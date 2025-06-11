@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Korean Vocabulary Practice</title>
 </head>
-<body>
-  <h1>Korean Vocabulary Practice</h1>
-  <div>
+<body style="font-family: sans-serif; padding: 1em; max-width: 600px; margin: auto;">
+  <h1 style="text-align: center;">Korean Vocabulary Practice</h1>
+  <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5em;">
     <button onclick="setMode('mc-ko-en')">Korean → English (MC)</button>
     <button onclick="setMode('mc-en-ko')">English → Korean (MC)</button>
     <button onclick="setMode('write-ko-en')">Korean → English (Write)</button>
@@ -14,7 +15,7 @@
     <button onclick="setMode('listen-ko-en')">🎧 Listen → English</button>
   </div>
   <hr>
-  <div id="practiceArea"></div>
+  <div id="practiceArea" style="text-align: center; margin-top: 1em;"></div>
 
   <script>
     const words = [
@@ -40,6 +41,8 @@
 
       if (mode === 'mc-ko-en' || mode === 'mc-en-ko') {
         const question = document.createElement('div');
+        question.style.fontSize = '1.5em';
+        question.style.marginBottom = '1em';
         question.textContent = mode === 'mc-ko-en' ? current.korean : current.english;
         area.appendChild(question);
 
@@ -47,17 +50,23 @@
         options.forEach(opt => {
           const btn = document.createElement('button');
           btn.textContent = mode === 'mc-ko-en' ? opt.english : opt.korean;
+          btn.style.display = 'block';
+          btn.style.margin = '0.5em auto';
           btn.onclick = () => alert((opt === current) ? 'Correct!' : 'Wrong!');
           area.appendChild(btn);
         });
 
       } else if (mode === 'write-ko-en' || mode === 'write-en-ko') {
         const question = document.createElement('div');
+        question.style.fontSize = '1.5em';
+        question.style.marginBottom = '1em';
         question.textContent = mode === 'write-ko-en' ? current.korean : current.english;
         area.appendChild(question);
 
         const input = document.createElement('input');
         input.type = 'text';
+        input.style.width = '80%';
+        input.style.marginBottom = '0.5em';
         area.appendChild(input);
 
         const btn = document.createElement('button');
@@ -75,6 +84,8 @@
         speechSynthesis.speak(utterance);
 
         const question = document.createElement('div');
+        question.style.fontSize = '1.2em';
+        question.style.marginBottom = '1em';
         question.textContent = 'What is the meaning of the spoken Korean word?';
         area.appendChild(question);
 
@@ -82,6 +93,8 @@
         options.forEach(opt => {
           const btn = document.createElement('button');
           btn.textContent = opt.english;
+          btn.style.display = 'block';
+          btn.style.margin = '0.5em auto';
           btn.onclick = () => alert((opt === current) ? 'Correct!' : 'Wrong!');
           area.appendChild(btn);
         });
@@ -103,3 +116,4 @@
   </script>
 </body>
 </html>
+
