@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,15 +27,27 @@
       margin-top: 1em;
       font-weight: bold;
     }
-    #score {
+    select {
+      padding: 0.5em;
+      font-size: 1em;
+      margin: 0.5em;
+    }
+    #scoreDisplay {
       margin-top: 1em;
       font-weight: bold;
-      text-align: center;
     }
   </style>
 </head>
 <body>
   <h1 style="text-align: center;">Korean Vocabulary Practice</h1>
+
+  <div style="text-align: center;">
+    <label for="groupSelect">Select Group:</label>
+    <select id="groupSelect" onchange="updateWordPool()">
+      <option value="">All Groups</option>
+    </select>
+  </div>
+
   <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5em;">
     <button onclick="setMode('mc-ko-en')">Korean → English (MC)</button>
     <button onclick="setMode('mc-en-ko')">English → Korean (MC)</button>
@@ -42,34 +55,48 @@
     <button onclick="setMode('write-en-ko')">English → Korean (Write)</button>
     <button onclick="setMode('listen-ko-en')">🎧 Listen → English</button>
   </div>
+
+  <div id="scoreDisplay">Score: 0</div>
   <hr>
   <div id="practiceArea" style="text-align: center; margin-top: 1em;"></div>
-  <div id="score"></div>
 
- <script src="https://cdn.jsdelivr.net/gh/abzone87/Korean_treeni/words.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/abzone87/Korean_treeni/words.js"></script>
   <script>
     let current = {};
     let mode = '';
     let score = 0;
-    let total = 0;
-    let groupWords = [];
+    let wordStats = JSON.parse(localStorage.getItem('wordStats') || '{}');
+    let wordPool = [];
 
     function setMode(m) {
       mode = m;
       nextQuestion();
     }
 
+    function updateWordPool() {
+      const group = document.getElementById('groupSelect').value;
+      wordPool = words.filter(w => !group || w.group === group);
+      nextQuestion();
+    }
+
+    function populateGroupDropdown() {
+      const groupSelect = document.getElementById('groupSelect');
+      const groups = [...new Set(words.map(w => w.group))];
+      groups.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g;
+        opt.textContent = g;
+        groupSelect.appendChild(opt);
+      });
+    }
+
     function nextQuestion() {
+      if (wordPool.length === 0) return;
+      current = wordPool[Math.floor(Math.random() * wordPool.length)];
       const area = document.getElementById('practiceArea');
       area.innerHTML = '';
       const feedback = document.createElement('div');
       feedback.className = 'feedback';
-
-      if (groupWords.length === 0) {
-        groupWords = words;
-      }
-
-      current = groupWords[Math.floor(Math.random() * groupWords.length)];
 
       if (mode === 'mc-ko-en' || mode === 'mc-en-ko') {
         const question = document.createElement('div');
@@ -82,10 +109,14 @@
           btn.textContent = mode === 'mc-ko-en' ? opt.english : opt.korean;
           btn.onclick = () => {
             const correct = (opt === current);
+            updateStats(current, correct);
             feedback.textContent = correct ? '✅ Correct!' : '❌ Wrong!';
             area.appendChild(feedback);
-            updateStats(current, correct);
-            if (correct) setTimeout(nextQuestion, 1000);
+            if (correct) {
+              score++;
+              updateScore();
+              setTimeout(nextQuestion, 1000);
+            }
           };
           area.appendChild(btn);
         });
@@ -105,10 +136,14 @@
           const answer = input.value.trim().toLowerCase();
           const correctAnswer = (mode === 'write-ko-en' ? current.english : current.korean).toLowerCase();
           const correct = answer === correctAnswer;
+          updateStats(current, correct);
           feedback.textContent = correct ? '✅ Correct!' : `❌ Wrong! Correct answer: ${correctAnswer}`;
           area.appendChild(feedback);
-          updateStats(current, correct);
-          if (correct) setTimeout(nextQuestion, 1000);
+          if (correct) {
+            score++;
+            updateScore();
+            setTimeout(nextQuestion, 1000);
+          }
         };
         area.appendChild(btn);
 
@@ -132,25 +167,40 @@
           btn.textContent = opt.english;
           btn.onclick = () => {
             const correct = (opt === current);
+            updateStats(current, correct);
             feedback.textContent = correct ? '✅ Correct!' : '❌ Wrong!';
             area.appendChild(feedback);
-            updateStats(current, correct);
-            if (correct) setTimeout(nextQuestion, 1000);
+            if (correct) {
+              score++;
+              updateScore();
+              setTimeout(nextQuestion, 1000);
+            }
           };
           area.appendChild(btn);
         });
       }
 
-      const nextBtn = document.createElement('button');
-      nextBtn.textContent = 'Next';
-      nextBtn.onclick = nextQuestion;
+      const stats = wordStats[current.korean] || { attempts: 0, correct: 0 };
+      const statLine = document.createElement('div');
+      statLine.textContent = `Practiced: ${stats.attempts} | Correct: ${stats.correct}`;
       area.appendChild(document.createElement('br'));
-      area.appendChild(nextBtn);
+      area.appendChild(statLine);
+    }
+
+    function updateStats(word, correct) {
+      const key = word.korean;
+      if (!wordStats[key]) wordStats[key] = { attempts: 0, correct: 0 };
+      wordStats[key].attempts++;
+      if (correct) wordStats[key].correct++;
+      localStorage.setItem('wordStats', JSON.stringify(wordStats));
+    }
+
+    function updateScore() {
+      document.getElementById('scoreDisplay').textContent = 'Score: ' + score;
     }
 
     function getRandomOptions(n) {
-      const filtered = groupWords.filter(w => w !== current);
-      const shuffled = filtered.sort(() => 0.5 - Math.random());
+      const shuffled = wordPool.filter(w => w !== current).sort(() => 0.5 - Math.random());
       return shuffled.slice(0, n);
     }
 
@@ -158,35 +208,12 @@
       return array.sort(() => Math.random() - 0.5);
     }
 
-    function updateStats(word, correct) {
-      const key = word.korean + '|' + word.english;
-      const stats = JSON.parse(localStorage.getItem('wordStats') || '{}');
-      if (!stats[key]) stats[key] = { correct: 0, total: 0 };
-      stats[key].total += 1;
-      if (correct) stats[key].correct += 1;
-      localStorage.setItem('wordStats', JSON.stringify(stats));
-      updateScoreDisplay();
-    }
-
-    function updateScoreDisplay() {
-      const stats = JSON.parse(localStorage.getItem('wordStats') || '{}');
-      let correct = 0, total = 0;
-      for (const key in stats) {
-        correct += stats[key].correct;
-        total += stats[key].total;
-      }
-      document.getElementById('score').textContent = `Score: ${correct} / ${total}`;
-    }
-
     window.onload = () => {
-      updateScoreDisplay();
-      setMode('mc-ko-en');
+      populateGroupDropdown();
+      updateWordPool();
     };
   </script>
 </body>
 </html>
 
-
-</body>
-</html>
 
