@@ -1,0 +1,258 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Korean Vocabulary Practice</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1em;
+      max-width: 600px;
+      margin: auto;
+    }
+    .mode-buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25em;
+      margin-bottom: 1em;
+    }
+    .mode-buttons button {
+      font-size: 0.9em;
+      padding: 0.4em 0.8em;
+    }
+    .option-button {
+      display: block;
+      width: 100%;
+      font-size: 1.2em;
+      padding: 0.6em;
+      margin: 0.3em 0;
+    }
+    .correct {
+      background-color: #c8e6c9;
+    }
+    .incorrect {
+      background-color: #ffcdd2;
+    }
+    .feedback {
+      font-weight: bold;
+      margin-top: 0.5em;
+    }
+    .success-rate {
+      font-size: 0.9em;
+      color: #555;
+      margin-top: 0.3em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Korean Vocabulary Practice</h1>
+
+  <div class="mode-buttons">
+    <label><strong>Task Mode:</strong></label>
+    <button onclick="setMode('mc-ko-en')">Korean → English (MC)</button>
+    <button onclick="setMode('mc-en-ko')">English → Korean (MC)</button>
+    <button onclick="setMode('write-ko-en')">Korean → English (Write)</button>
+    <button onclick="setMode('write-en-ko')">English → Korean (Write)</button>
+    <button onclick="setMode('listen-ko-en')">🎧 Listen → English</button>
+  </div>
+
+  <label for="strategySelect"><strong>Selection Strategy:</strong></label>
+  <select id="strategySelect" onchange="nextQuestion()">
+    <option value="normal">Normaali</option>
+    <option value="wrong">Usein väärin menneet</option>
+    <option value="random">Satunnainen</option>
+  </select>
+
+  <div id="scoreDisplay" style="margin-top: 1em;"><strong>Score:</strong> 0</div>
+  <hr>
+  <div id="practiceArea" style="margin-top: 1em;"></div>
+
+  <script src="words.js"></script>
+  <script>
+    let current = {};
+    let mode = '';
+    let score = 0;
+
+    function setMode(m) {
+      mode = m;
+      nextQuestion();
+    }
+
+    function getStats(word) {
+      const stats = JSON.parse(localStorage.getItem('wordStats') || '{}');
+      return stats[word] || { correct: 0, wrong: 0 };
+    }
+
+    function updateStats(word, correct) {
+      const stats = JSON.parse(localStorage.getItem('wordStats') || '{}');
+      if (!stats[word]) stats[word] = { correct: 0, wrong: 0 };
+      if (correct) stats[word].correct++;
+      else stats[word].wrong++;
+      localStorage.setItem('wordStats', JSON.stringify(stats));
+    }
+
+    function getSuccessRate(word) {
+      const s = getStats(word);
+      const total = s.correct + s.wrong;
+      return total > 0 ? Math.round((s.correct / total) * 100) : 0;
+    }
+
+    function nextQuestion() {
+      const strategy = document.getElementById('strategySelect').value;
+      let pool = [];
+
+      const stats = JSON.parse(localStorage.getItem('wordStats') || '{}');
+
+      if (strategy === 'random') {
+        pool = [...words];
+      } else if (strategy === 'normal') {
+        const unseen = words.filter(w => !stats[w.korean]);
+        const lowCorrect = words.filter(w => {
+          const s = stats[w.korean];
+          return s && s.correct <= 6;
+        });
+        const highCorrect = words.filter(w => {
+          const s = stats[w.korean];
+          return s && s.correct >= 7;
+        });
+
+        pool = [
+          ...getRandomSubset(unseen, Math.ceil(words.length * 0.1)),
+          ...getRandomSubset(lowCorrect, Math.ceil(words.length * 0.3)),
+          ...getRandomSubset(highCorrect, Math.ceil(words.length * 0.6))
+        ];
+      } else if (strategy === 'wrong') {
+        const lowCorrectWrong = words.filter(w => {
+          const s = stats[w.korean];
+          return s && s.correct <= 6 && s.wrong >= 2;
+        });
+        const highCorrectWrong = words.filter(w => {
+          const s = stats[w.korean];
+          return s && s.correct >= 7 && s.wrong >= 2;
+        });
+
+        pool = [
+          ...getRandomSubset(lowCorrectWrong, Math.ceil(words.length * 0.7)),
+          ...getRandomSubset(highCorrectWrong, Math.ceil(words.length * 0.3))
+        ];
+      }
+
+      if (pool.length === 0) pool = [...words];
+      current = pool[Math.floor(Math.random() * pool.length)];
+
+      const area = document.getElementById('practiceArea');
+      area.innerHTML = '';
+
+      
+if (mode !== 'listen-ko-en') {
+  const question = document.createElement('div');
+  question.textContent = (mode === 'mc-ko-en' || mode === 'write-ko-en') ? current.korean : current.english;
+  area.appendChild(question);
+}
+
+
+      const success = document.createElement('div');
+      success.className = 'success-rate';
+      const rate = getSuccessRate(current.korean);
+      success.textContent = `Success rate: ${rate}%`;
+      area.appendChild(success);
+
+      if (mode.startsWith('mc')) {
+        const options = shuffle([current, ...getRandomOptions(3)]);
+        options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.className = 'option-button';
+          btn.textContent = (mode === 'mc-ko-en') ? opt.english : opt.korean;
+          btn.onclick = () => {
+            const correct = opt === current;
+            updateStats(current.korean, correct);
+            if (correct) {
+              btn.classList.add('correct');
+              score++;
+              document.getElementById('scoreDisplay').textContent = 'Score: ' + score;
+              setTimeout(nextQuestion, 1000);
+            } else {
+              btn.classList.add('incorrect');
+            }
+          };
+          area.appendChild(btn);
+        });
+      } else if (mode.startsWith('write')) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.style.fontSize = '1.2em';
+        input.style.marginTop = '0.5em';
+        area.appendChild(input);
+
+        const btn = document.createElement('button');
+        btn.textContent = 'Check';
+        btn.style.marginLeft = '0.5em';
+        btn.onclick = () => {
+          const answer = input.value.trim().toLowerCase();
+          const correctAnswer = (mode === 'write-ko-en') ? current.english.toLowerCase() : current.korean.toLowerCase();
+          const correct = answer === correctAnswer;
+          updateStats(current.korean, correct);
+          if (correct) {
+            score++;
+            document.getElementById('scoreDisplay').textContent = 'Score: ' + score;
+            btn.classList.add('correct');
+            setTimeout(nextQuestion, 1000);
+          } else {
+            btn.classList.add('incorrect');
+          }
+        };
+        area.appendChild(btn);
+      } else if (mode === 'listen-ko-en') {
+        const utterance = new SpeechSynthesisUtterance(current.korean);
+        utterance.lang = 'ko-KR';
+        speechSynthesis.speak(utterance);
+
+        const replayBtn = document.createElement('button');
+        replayBtn.textContent = '🔁 Listen again';
+        replayBtn.onclick = () => speechSynthesis.speak(utterance);
+        area.appendChild(replayBtn);
+
+        const options = shuffle([current, ...getRandomOptions(3)]);
+        options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.className = 'option-button';
+          btn.textContent = opt.english;
+          btn.onclick = () => {
+            const correct = opt === current;
+            updateStats(current.korean, correct);
+            if (correct) {
+              btn.classList.add('correct');
+              score++;
+              document.getElementById('scoreDisplay').textContent = 'Score: ' + score;
+              setTimeout(nextQuestion, 1000);
+            } else {
+              btn.classList.add('incorrect');
+            }
+          };
+          area.appendChild(btn);
+        });
+      }
+    }
+
+    function getRandomOptions(n) {
+      const filtered = words.filter(w => w !== current);
+      return shuffle(filtered).slice(0, n);
+    }
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function getRandomSubset(arr, count) {
+      return shuffle(arr).slice(0, count);
+    }
+
+    window.onload = () => {
+      setMode('mc-ko-en');
+    };
+  </script>
+</body>
+</html>
