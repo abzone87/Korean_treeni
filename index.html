@@ -146,7 +146,11 @@
       
 if (mode !== 'listen-ko-en') {
   const question = document.createElement('div');
-  question.textContent = (mode === 'mc-ko-en' || mode === 'write-ko-en') ? current.korean : current.english;
+  
+question.innerHTML = `<span style="font-size: 1.8em;">${
+  (mode === 'write-ko-en' || mode === 'mc-ko-en') ? current.korean : current.english
+}</span>`;
+
   area.appendChild(question);
 }
 
@@ -220,8 +224,8 @@ btn.onclick = () => {
     const correctText = (mode === 'write-ko-en') ? current.english : current.korean;
     const exampleText = (mode === 'write-ko-en') ? current.example_en : current.example_ko;
     feedback.innerHTML = `
-      ❌ Correct answer: <strong style="font-size: 1.5em;">${correctText}</strong><br>
-      📝 Example: <strong style="font-size: 1.5em;">${exampleText}</strong><br>
+      ❌ Correct answer: <strong style="font-size: 1.5em; font-weight: normal;">${correctText}</strong><br>
+      📝 Example: <strong style="font-size: 1.5em; font-weight: normal;">${exampleText}</strong><br>
     `;
     area.appendChild(feedback);
   }
