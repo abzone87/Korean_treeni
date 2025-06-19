@@ -212,7 +212,7 @@ btn.onclick = () => {
     const exampleText = (mode === 'write-ko-en') ? current.example_en : current.example_ko;
     feedback.innerHTML = `
       ❌ Correct answer: <strong style="font-size: 1.5em;">${correctText}</strong><br>
-      📝 Example: ${exampleText}
+      📝 Example: <strong style="font-size: 1.5em;">${exampleText}</strong><br>
     `;
     area.appendChild(feedback);
   }
