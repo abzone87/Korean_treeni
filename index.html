@@ -184,6 +184,15 @@ if (mode !== 'listen-ko-en') {
         input.style.marginTop = '0.5em';
         area.appendChild(input);
 
+          
+            input.addEventListener("keydown", function(event) {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                btn.click();
+              }
+            });
+
+
         const btn = document.createElement('button');
         btn.textContent = 'Check';
         btn.style.marginLeft = '0.5em';
