@@ -211,7 +211,7 @@ btn.onclick = () => {
     const correctText = (mode === 'write-ko-en') ? current.english : current.korean;
     const exampleText = (mode === 'write-ko-en') ? current.example_en : current.example_ko;
     feedback.innerHTML = `
-      ❌ Correct answer: <strong>${correctText}</strong><br>
+      ❌ Correct answer: <strong style="font-size: 1.5em;">${correctText}</strong><br>
       📝 Example: ${exampleText}
     `;
     area.appendChild(feedback);
