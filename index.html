@@ -262,6 +262,13 @@ btn.onclick = () => {
           area.appendChild(btn);
         });
       }
+        
+        // Keep focus in the input box for written modes
+        if (mode.startsWith('write')) {
+          const input = document.querySelector('input[type="text"]');
+          if (input) input.focus();
+        }
+
     }
 
     function getRandomOptions(n) {
