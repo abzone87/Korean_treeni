@@ -24,6 +24,20 @@
       font-size: 0.9em;
       padding: 0.4em 0.8em;
     }
+
+.mode-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 1em;
+  margin-bottom: 1em;
+}
+
+.mode-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+}
+
     .option-button {
       display: block;
       width: 100%;
@@ -50,20 +64,41 @@
 </head>
 <body>
 <h1>Korean Vocabulary Practice</h1>
-<div class="mode-buttons">
-<label><strong>Task Mode:</strong></label>
-<button onclick="setMode('mc-ko-en')">Korean → English (MC)</button>
-<button onclick="setMode('mc-en-ko')">English → Korean (MC)</button>
-<button onclick="setMode('write-ko-en')">Korean → English (Write)</button>
-<button onclick="setMode('write-en-ko')">English → Korean (Write)</button>
-<button onclick="setMode('listen-ko-en')">🎧 Listen → English</button>
+
+<div class="mode-container">
+  <div class="mode-column">
+    <label><strong>Task Mode:</strong></label>
+    <button onclick="setMode('mc-ko-en')">Korean → English (MC)</button>
+    <button onclick="setMode('mc-en-ko')">English → Korean (MC)</button>
+    <button onclick="setMode('listen-ko-en')">🎧 Listen → English</button>
+  </div>
+  <div class="mode-column">
+    
+    <button onclick="setMode('write-ko-en')">Korean → English (Write)</button>
+    <button onclick="setMode('write-en-ko')">English → Korean (Write)</button>
+  </div>
 </div>
+
+
+
+<!-- Spacer between task buttons and strategy selection -->
+<div style="height: 1em;"></div>
+
+
 <label for="strategySelect"><strong>Selection Strategy:</strong></label>
 <select id="strategySelect" onchange="nextQuestion()">
 <option value="normal">Normaali</option>
 <option value="wrong">Usein väärin menneet</option>
 <option value="random">Satunnainen</option>
 </select>
+
+
+<!-- Cleanup Button Row -->
+<div style="margin-top: 1em;">
+  <button onclick="cleanUpOldStats()">🧹 Clean Up Old Words</button>
+</div>
+
+
 <div id="scoreDisplay" style="margin-top: 1em;"><strong>Score:</strong> 0</div>
 <hr/>
 <div id="practiceArea" style="margin-top: 1em;"></div>
@@ -90,6 +125,27 @@
       else stats[word].wrong++;
       localStorage.setItem('wordStats', JSON.stringify(stats));
     }
+
+function cleanUpOldStats() {
+  const stats = JSON.parse(localStorage.getItem('wordStats') || '{}');
+  const currentWords = new Set(words.map(w => w.korean));
+  let changed = false;
+
+  for (const word in stats) {
+    if (!currentWords.has(word)) {
+      delete stats[word];
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    localStorage.setItem('wordStats', JSON.stringify(stats));
+    alert('Old word stats have been cleaned up!');
+  } else {
+    alert('No outdated words found in memory.');
+  }
+}
+
 
     function getSuccessRate(word) {
       const s = getStats(word);
@@ -188,13 +244,13 @@ question.innerHTML = `<span style="font-size: 1.8em;">${
         input.style.marginTop = '0.5em';
         area.appendChild(input);
 
-          
-            input.addEventListener("keydown", function(event) {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                btn.click();
-              }
-            });
+
+input.addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    btn.click();
+  }
+});
 
 
         const btn = document.createElement('button');
@@ -224,11 +280,12 @@ btn.onclick = () => {
     const correctText = (mode === 'write-ko-en') ? current.english : current.korean;
     const exampleText = (mode === 'write-ko-en') ? current.example_en : current.example_ko;
     feedback.innerHTML = `
-      ❌ Correct answer: <strong style="font-size: 1.5em; font-weight: normal;">${correctText}</strong><br>
-      📝 Example: <strong style="font-size: 1.5em; font-weight: normal;">${exampleText}</strong><br>
+      ❌ Correct answer: <span style="font-size: 1.5em; font-weight: normal;">${correctText}</span><br>
+      📝 Example: <span style="font-size: 1.5em; font-weight: normal;">${exampleText}</span><br>
     `;
     area.appendChild(feedback);
   }
+input.focus();
 };
 
         area.appendChild(btn);
@@ -262,12 +319,13 @@ btn.onclick = () => {
           area.appendChild(btn);
         });
       }
-        
-        // Keep focus in the input box for written modes
-        if (mode.startsWith('write')) {
-          const input = document.querySelector('input[type="text"]');
-          if (input) input.focus();
-        }
+
+// Keep focus in the input box for written modes
+if (mode.startsWith('write')) {
+  const input = document.querySelector('input[type="text"]');
+  if (input) input.focus();
+}
+
 
     }
 
@@ -290,3 +348,4 @@ btn.onclick = () => {
   </script>
 </body>
 </html>
+
