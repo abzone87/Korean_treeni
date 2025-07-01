@@ -107,7 +107,10 @@
 <div id="scoreDisplay" style="margin-top: 1em;"><strong>Score:</strong> 0</div>
 <hr/>
 <div id="practiceArea" style="margin-top: 1em;"></div>
-<script src="https://cdn.jsdelivr.net/gh/abzone87/Korean_treeni/words.js"></script>
+
+
+<! script src="https://cdn.jsdelivr.net/gh/abzone87/Korean_treeni/words.js"></script>
+<script src=words.js></script>
 <script>
     let current = {};
     let mode = '';
@@ -182,7 +185,7 @@ function cleanUpOldStats() {
           ...getRandomSubset(lowCorrect, Math.ceil(words.length * 0.3)),
           ...getRandomSubset(highCorrect, Math.ceil(words.length * 0.6))
         ];
-      } else if (strategy === 'wrong') {
+     } else if (strategy === 'wrong') {
         const lowCorrectWrong = words.filter(w => {
           const s = stats[w.korean];
           return s && s.correct <= 6 && s.wrong >= 2;
@@ -353,4 +356,3 @@ if (mode.startsWith('write')) {
   </script>
 </body>
 </html>
-
