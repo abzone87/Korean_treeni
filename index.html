@@ -178,7 +178,7 @@ function cleanUpOldStats() {
         const unseen = words.filter(w => !stats[w.korean]);
         const lowCorrect = words.filter(w => {
           const s = stats[w.korean];
-          return s && s.correct <= 6 && s.correct >= 1 || s.wrong >= 1;
+          return s && ((s.correct <= 6 && s.correct >= 1) || s.wrong >= 1);
         });
         const highCorrect = words.filter(w => {
           const s = stats[w.korean];
@@ -191,6 +191,7 @@ function cleanUpOldStats() {
           ...getRandomSubset(highCorrect, Math.ceil(words.length * 0.3))
         ];
      } else if (strategy === 'wrong') {
+          const unseen = words.filter(w => !stats[w.korean]);
         const lowCorrectWrong = words.filter(w => {
           const s = stats[w.korean];
           return s && s.correct <= 6 && s.wrong >= 2;
@@ -203,7 +204,7 @@ function cleanUpOldStats() {
         pool = [
              ...getRandomSubset(unseen, Math.ceil(words.length * 0.1)),
           ...getRandomSubset(lowCorrectWrong, Math.ceil(words.length * 0.7)),
-          ...getRandomSubset(highCorrectWrong, Math.ceil(words.length * 0.3))
+          ...getRandomSubset(highCorrectWrong, Math.ceil(words.length * 0.2))
         ];
       }
 
