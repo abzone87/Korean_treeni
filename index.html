@@ -184,11 +184,11 @@ function cleanUpOldStats() {
           const s = stats[w.korean];
           return s && s.correct >= 7;
         });
-
+        pituus = lowCorrect.length + highCorrect.length;
         pool = [
           
-          ...getRandomSubset(lowCorrect, Math.ceil(words.length * 0.7)),
-          ...getRandomSubset(highCorrect, Math.ceil(words.length * 0.3))
+          ...getRandomSubset(lowCorrect, Math.ceil(pituus * 0.7)),
+          ...getRandomSubset(highCorrect, Math.ceil(pituus * 0.3))
         ];
      } else if (strategy === 'wrong') {
           const unseen = words.filter(w => !stats[w.korean]);
